@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>IMAGE EDITING &AMP; CROPPING TOOL</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="Jared J Kramer">
+  <!-- styles -->
+  <link href="css/chosen.min.css" media="screen" rel="stylesheet" />
+  <link href="css/bootstrap.3.2.0.css" media="screen" rel="stylesheet" />
+  <link href="css/bootstrap-responsive.css" media="screen" rel="stylesheet"/>
+  <link href="css/bootstrap-slider.min.css" media="screen" rel="stylesheet" />
+  <link href="css/cropper.css" media="screen" rel="stylesheet" />
+  <link href="css/main.css" media="screen" rel="stylesheet"/>	
+  <!-- uploader -->
+  <link href="css/default.css" media="screen" rel="stylesheet"/>
+</head>
+<body>
+  <script type="text/x-handlebars" data-template-name="application">
+    <div id="container" class="container">
+       {{outlet}}     
+  </script>
+
+  <script type="text/x-handlebars" data-template-name="index">
+    <div class="mainImage col-sm-8 pull-left">
+      {{#if currentMainImage}}
+        <div class="img-container"><img id="editImage" {{bind-attr src=controller.currentMainImage.imagepath}} /></div>
+        <img id="editedImage" {{bind-attr src=currentImage.imagepath}} />
+        <input type="hidden" id="main_image_type" {{bind-attr value=controller.currentMainImage.imagetype}} />
+        <input type="hidden" id="main_image_path" {{bind-attr value=controller.currentMainImage.imagepath}} />
+        <input type="hidden" id="main_image_thumb" {{bind-attr value=controller.currentMainImage.thumbpath}} />
+        <input type="hidden" id="main_image_id" {{bind-attr value=controller.currentMainImage.id}} />
+      {{else}}
+        <div class="alert alert-warning" role="alert"><i class="glyphicon glyphicon-hand-down"></i>No image selected</div>
+      {{/if}}
+    </div>
+    <div class="mainImageTools col-sm-4 pull-left">
+        <button class="btn btn-lrg btn-block btn-success" id="btnCommitImage"{{bind-attr disabled=isFullAdmin}} {{action "commitImage" controller.currentMainImage target="controller" }}><i class="glyphicon glyphicon-ok"></i> Commit Image</button>
+        <button class="btn btn-lrg btn-block" id="btnResetImage" {{action "resetImg" target="controller"}}><i class="glyphicon glyphicon-refresh"></i> Reset Image</button><hr>
+          {{render 'imagetools'}}
+        <button class="hide" id="chooseMainImage" {{action "chooseImage" controller.currentMainImage target="controller" }}>Set main image</button>
+    </div>
+
+  </script>
+
+
+      <!-- image accordion -->
+    <script type="text/x-handlebars" data-template-name="imagetools">
+      <div class="panel-group" id="editImageAccordion">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title"><a {{action "toggleImageTool" "cropping" target="view"}} data-toggle="collapse" data-parent="#editImageAccordion" id="imageCropPanel" href="#imageCrop"><i class="glyphicon glyphicon-retweet"></i> Crop Image</a></h4>
+              </div>
+              <div id="imageCrop" class="panel-collapse collapse">
+                <div class="panel-body">
+                  <div class="img-preview "></div>
+                  <button id="killCrop" class="killCrop hide" {{action "killCrop" target="view"}}></button>
+                  <div class="btn-group btn-block">
+                    <button class="btn btn-primary disabled toggleCrop" {{action "selectCrop" currentImage target="view" }}>
+                      <i class="glyphicon glyphicon-edit"></i> Toggle Crop
+                    </button>
+                    <button data-func="crop" class="btn btn-success disabled commitCrop" id="btnCommitCrop" {{action "commitCrop" currentImage target="view" }}>
+                      <i class="glyphicon glyphicon-ok"></i> Commit Crop
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="panel-heading">
+                <h4 class="panel-title"><a {{action "toggleImageTool" "flip" target="view"}} data-toggle="collapse" data-parent="#editImageAccordion" href="#imageFlip"><i class="glyphicon glyphicon-share-alt"></i> Flip Image</a></h4>
+              </div>
+              <div id="imageFlip" class="panel-collapsse collapse">
+                <div class="panel-body">
+                  <button class="btn btn-primary imageFunc" data-func="fliph" id="btnFlipHorz"><i class="glyphicon glyphicon-arrow-right"></i> Horizontal Flip</button>
+                  <button class="btn btn-primary imageFunc" data-func="flipv" id="btnFlipVert"><i class="glyphicon glyphicon-arrow-up"></i> Vertical Flip</button>
+                </div>
+              </div>
+              <div class="panel-heading">
+                <h4 class="panel-title"><a {{action "toggleImageTool" "blur" target="view"}} data-toggle="collapse" data-parent="#editImageAccordion" href="#imageBlur"><i class="glyphicon glyphicon-eye-close"></i> Blur Image</a></h4>
+              </div>
+              <div id="imageBlur" class="panel-collapse collapse">
+                <div class="panel-body">
+                  <div class="form-group">
+                    <label for="blurVal" class="col-sm-3">Amount</label>
+                    <input id="blurVal" data-param="amount" class="bslider blurVal" data-slider-id="blurValue" type="text" data-slider-min="0" data-slider-max="5" data-slider-step="0.01" data-slider-tooltip="show" data-slider-precision="2"  data-slider-handle="square" data-slider-value="0" />
+                  </div>
+                  <button class="btn btn-primary imageFunc pull-left btn-block" data-func="blurfast" id="btnBlur"><i class="glyphicon glyphicon-eye-close"></i> Blur</button>
+                </div>
+              </div>
+              <div class="panel-heading">
+                <h4 class="panel-title"><a {{action "toggleImageTool" "sharpen" target="view"}} data-toggle="collapse" data-parent="#editImageAccordion" href="#imageSharpen"><i class="glyphicon glyphicon-pushpin"></i> Sharpen Image</a></h4>
+              </div>
+              <div id="imageSharpen" class="panel-collapse collapse">
+                <div class="panel-body">
+                  <div class="form-group">
+                    <label for="sharpenVal" class="col-sm-3">Amount</label>
+                    <input id="sharpenVal" data-param="amount" class="bslider sharpenVal" data-slider-id="sharpenValue" type="text" data-slider-min="0" data-slider-max="1" data-slider-step="0.01" data-slider-tooltip="show" data-slider-precision="2"  data-slider-handle="square" data-slider-value="0" />
+                  </div>
+                  <button class="btn btn-primary imageFunc pull-left btn-block" data-func="sharpen" id="btnSharpen"><i class="glyphicon glyphicon-pushpin"></i> Sharpen</button>
+                </div>
+              </div>
+              <div class="panel-heading">
+                <h4 class="panel-title"><a {{action "toggleImageTool" "hsl" target="view"}} data-toggle="collapse" data-parent="#editImageAccordion" href="#imageHSL"><i class="glyphicon glyphicon-adjust"></i> Hue / Saturation / Lightness</a></h4>
+              </div>
+              <div class="panel-collapse collapse" id="imageHSL">
+                <div class="panel-body">
+                  <div class="form-group">
+                    <label for="hueVal" class="col-sm-3">Hue&nbsp;</label>
+                    <input id="hueVal" data-param="hue" class="bslider hueVal" data-slider-id="HueVal" type="text" data-slider-min="-180" data-slider-step="1" data-slider-max="180" data-slider-tooltip="show" data-slider-handle="square" data-slider-value="0" />
+                  </div>
+                  <div class="form-group">
+                    <label for="saturVal" class="col-sm-3">Saturation&nbsp;</label>
+                    <input id="saturVal" data-param="saturation" class="bslider saturVal" data-slider-id="saturationVal" type="text" data-slider-min="-100" data-slider-step="1" data-slider-max="100" data-slider-tooltip="show" data-slider-handle="square" data-slider-value="0" />
+                  </div>
+                  <div class="form-group">
+                    <label for="lightVal" class="col-sm-3">Lightness&nbsp;</label>
+                    <input id="lightVal" data-param="lightness" class="bslider lightVal" data-slider-id="lightnessVal" type="text" data-slider-min="-100" data-slider-step="1" data-slider-max="100" data-slider-tooltip="show" data-slider-handle="square" data-slider-value="0" />
+                  </div>
+                  <button class="btn btn-primary imageFunc pull-left btn-block" data-func="hsl" id="btnHSL"><i class="glyphicon glyphicon-adjust"></i> HSL Adjust</button>
+                </div>
+              </div>
+              <div class="panel-heading">
+                <h4 class="panel-title"><a {{action "toggleImageTool" "rgb" target="view"}} data-toggle="collapse" data-parent="#editImageAccordion" href="#imageRGB"><i class="glyphicon glyphicon-tint"></i> Adjust RGB</a></h4>
+              </div>
+              <div class="panel-collapse collapse" id="imageRGB">
+                <div class="panel-body">
+                  <div class="form-group">
+                    <label for="redVal" class="col-sm-3">Red&nbsp;</label>
+                    <input id="redVal" class="bslider redVal" data-param="red" data-slider-id="redValue" type="text" data-slider-min="-1" data-slider-step="0.01" data-slider-max="1" data-slider-tooltip="show" data-slider-handle="square" data-slider-value="0" data-slider-precision="2" />
+                  </div>
+                  <div class="form-group">
+                    <label for="greenVal" class="col-sm-3">Green&nbsp;</label>
+                    <input id="greenVal" data-param="green" class="bslider greenVal" data-slider-id="greenValue" type="text" data-slider-min="-1" data-slider-step="0.01" data-slider-max="1" data-slider-tooltip="show" data-slider-handle="square" data-slider-value="0" data-slider-precision="2" />
+                  </div>
+                  <div class="form-group">
+                    <label for="blueVal" class="col-sm-3">Blue&nbsp;</label>
+                    <input id="blueVal" data-param="blue" class="bslider blueVal" data-slider-id="blueValue" type="text" data-slider-min="-1" data-slider-step="0.01" data-slider-max="1" data-slider-tooltip="show" data-slider-handle="square" data-slider-value="0" data-slider-precision="2" />
+                  </div>
+                  <button class="btn btn-primary imageFunc pull-left btn-block" data-func="coloradjust" id="btnRGB"><i class="glyphicon glyphicon-tint"></i> RGB Adjust</button>
+                </div>
+              </div>
+              <div class="panel-heading">
+                <h4 class="panel-title"><a {{action "toggleImageTool" "bc" target="view"}} data-toggle="collapse" data-parent="#editImageAccordion" href="#imageBC"><i class="glyphicon glyphicon-flash"></i> Brightness / Contrast</a></h4>
+              </div>
+              <div class="panel-collapse collapse" id="imageBC">
+                <div class="panel-body">
+                  <div class="form-group">
+                    <label for="brightVal" class="col-sm-3">Brightness&nbsp;</label>
+                    <input id="brightVal" data-param="brightness" class="bslider brightVal" data-slider-id="brigntnessVal" type="text" data-slider-min="-150" data-slider-max="150" data-slider-tooltip="show" data-slider-handle="square" data-slider-value="0" />
+                  </div>
+                  <div class="form-group">
+                    <label for="conVal" class="col-sm-3">Contrast&nbsp;</label>
+                    <input id="conVal" class="bslider conVal" data-param="contrast" data-slider-id="contrastVal" type="text" data-slider-min="-150" data-slider-max="150" data-slider-tooltip="show" data-slider-handle="square" data-slider-value="0" />
+                  </div>
+                  <button class="btn btn-primary imageFunc pull-left btn-block" data-func="brightness" id="btnBC"><i class="glyphicon glyphicon-flash"></i> Adjust Brightness / Contrast</button>
+                </div>
+              </div>
+              <div class="panel-heading">
+                <h4 class="panel-title"><a {{action "toggleImageTool" "noise" target="view"}} data-toggle="collapse" data-parent="#editImageAccordion" href="#imageNoise"><i class="glyphicon glyphicon-map-marker"></i> Add Noise</a></h4>
+              </div>
+              <div class="panel-collapse collapse" id="imageNoise">
+                <div class="panel-body">
+                  <div class="form-group">
+                    <label for="noiseAmtVal" class="col-sm-3">Amount&nbsp;</label>
+                    <input id="noiseAmtVal" data-param="amount" class="bslider noiseAmtVal" data-slider-id="noiseAmountVal" type="text" data-slider-min="0" data-slider-max="1" data-slider-step="0.01" data-slider-precision="2" data-slider-tooltip="show" data-slider-handle="square" data-slider-value="0" />
+                  </div>
+                  <div class="form-group">
+                    <label for="noiseStrVal" class="col-sm-3">Strength&nbsp;</label>
+                    <input id="noiseStrVal" data-param="strength" class="bslider noiseStrVal" data-slider-id="noiseStrengthVal" type="text" data-slider-min="0" data-slider-max="1" data-slider-step="0.01" data-slider-precision="2" data-slider-tooltip="show" data-slider-handle="square" data-slider-value="0" />
+                  </div>
+                    <input id="noiseMonoVal" type="hidden" value="" data-param="mono" />
+                  <button class="btn btn-primary imageFunc pull-left btn-block" data-func="noise" id="btnNoise"><i class="glyphicon glyphicon-map-marker"></i> Add Noise</button>
+                </div>
+              </div>
+              <div class="panel-heading">
+                <h4 class="panel-title"><a {{action "toggleImageTool" "pixelate" target="view"}} data-toggle="collapse" data-parent="#editImageAccordion" href="#imagePixelate"><i class="glyphicon glyphicon-th-large"></i> Pixelate</a></h4>
+              </div>
+              <div class="panel-collapse collapse" id="imagePixelate">
+                <div class="panel-body">
+                  <div class="form-group">
+                    <label for="pixelVal" class="col-sm-3">Amount&nbsp;</label>
+                    <input id="pixelVal" data-param="blockSize" class="bslider pixelVal" data-slider-id="pixelateVal" type="text" data-slider-min="0" data-slider-max="100" data-slider-tooltip="show" data-slider-handle="square" data-slider-value="0"/>
+                  </div>
+                  <button class="btn btn-primary imageFunc pull-left btn-block" data-func="mosaic" id="btnPixel"><i class="glyphicon glyphicon-th-large"></i> Pixelate</button>
+                </div>
+              </div>
+              <div class="panel-heading">
+                <h4 class="panel-title"><a {{action "toggleImageTool" "pointillize" target="view"}} data-toggle="collapse" data-parent="#editImageAccordion" href="#imagePointillize"><i class="glyphicon glyphicon-record"></i> Pointillize</a></h4>
+              </div>
+              <div class="panel-collapse collapse" id="imagePointillize">
+                <div class="panel-body">
+                  <div class="form-group">
+                    <label for="pointradiusVal" class="col-sm-3">Radius&nbsp;</label>
+                    <input id="pointradiusVal" data-param="radius" class="bslider pointradiusVal" data-slider-id="pointRadiusValue" type="text" data-slider-min="0" d data-slider-max="100" data-slider-tooltip="show" data-slider-handle="square" data-slider-value="0" data-slider-precision="2" />
+                  </div>
+                  <div class="form-group">
+                    <label for="pointdensityVal" class="col-sm-3">Density&nbsp;</label>
+                    <input id="pointdensityVal" data-param="density" class="bslider pointdensityVal" data-slider-id="pointDensityValue" type="text" data-slider-min="0" data-slider-step="0.01" data-slider-max="5" data-slider-tooltip="show" data-slider-handle="square" data-slider-value="0" data-slider-precision="2" />
+                  </div>
+                  <div class="form-group">
+                    <label for="pointnoiseVal" class="col-sm-3">Noise&nbsp;</label>
+                    <input id="pointnoiseVal" data-param="noise"class="bslider pointnoiseVal" data-slider-id="pointNoiseValue" type="text" data-slider-min="0" data-slider-step="0.01" data-slider-max="2" data-slider-tooltip="show" data-slider-handle="square" data-slider-value="0" data-slider-precision="2" />
+                  </div>
+                  <input type="hidden" data-param="transparent" value="" />
+                  <button class="btn btn-primary imageFunc pull-left btn-block" data-func="pointillize" id="btnPointillize"><i class="glyphicon glyphicon-record"></i> Pointillize</button>
+                </div>
+              </div>
+              
+              <div class="panel-heading">
+                <h4 class="panel-title"><a {{action "toggleImageTool" "posterize" target="view"}} data-toggle="collapse" data-parent="#editImageAccordion" href="#imagePosterize"><i class="glyphicon glyphicon-picture"></i> Posterize</a></h4>
+              </div>
+              <div class="panel-collapse collapse" id="imagePosterize">
+                <div class="panel-body">
+                  <div class="form-group">
+                    <label for="posterizeVal" class="col-sm-3">Levels&nbsp;</label>
+                    <input id="posterizeVal" data-param="levels" class="bslider posterizeVal" data-slider-id="posterizeVal" type="text" data-slider-min="0" data-slider-max="100" data-slider-tooltip="show" data-slider-handle="square" data-slider-value="0"/>
+                  </div>
+                  <button class="btn btn-primary imageFunc pull-left btn-block" data-func="posterize" id="btnPosterize"><i class="glyphicon glyphicon-picture"></i> Posterize</button>
+                </div>
+              </div>
+              <div class="panel-heading">
+                <h4 class="panel-title"><a {{action "toggleImageTool" "glow" target="view"}} data-toggle="collapse" data-parent="#editImageAccordion" href="#imageGlow"><i class="glyphicon glyphicon-fire"></i> Glow</a></h4>
+              </div>
+              <div class="panel-collapse collapse" id="imageGlow">
+                <div class="panel-body">
+                  <div class="form-group">
+                    <label for="glowAmtVal" class="col-sm-3">Amount&nbsp;</label>
+                    <input id="glowAmtVal" data-param="amount" class="bslider glowAmtVal" data-slider-id="glowAmount" type="text" data-slider-min="0" data-slider-max="1" data-slider-tooltip="show" data-slider-handle="square" data-slider-precision="2" data-slider-step="0.01" data-slider-value="0"/>
+                  </div>
+                  <div class="form-group">
+                    <label for="glowRadVal" class="col-sm-3">Radius&nbsp;</label>
+                    <input id="glowRadVal" data-param="radius" class="bslider glowRadVal" data-slider-id="glowRadius" type="text" data-slider-min="0" data-slider-max="1" data-slider-tooltip="show" data-slider-handle="square" data-slider-precision="2" data-slider-step="0.01" data-slider-value="0"/>
+                  </div>
+                  <button class="btn btn-primary imageFunc pull-left btn-block" id="btnGlow" data-func="glow"><i class="glyphicon glyphicon-fire"></i> Add Glow</button>
+                </div>
+              </div>
+              <div class="panel-heading">
+                <h4 class="panel-title"><a {{action "toggleImageTool" "sepia" target="view"}} data-toggle="collapse" data-parent="#editImageAccordion" href="#imageSepia"><i class="glyphicon glyphicon-camera"></i> Sepia</a></h4>
+              </div>
+              <div class="panel-collapse collapse" id="imageSepia">
+                <div class="panel-body">
+                  <button class="btn btn-primary imageFunc pull-left btn-block" id="btnSepia" data-func="sepia"><i class="glyphicon glyphicon-camera"></i> Add Sepia</button>
+                </div>
+              </div>
+            </div>
+          </div>
+    </script>
+  
+  
+
+  <!-- JS -->
+		<script src="js/libs/jquery-1.10.2.js"></script>
+		<script src="js/libs/jquery-ui-1.8.21.custom.min.js"></script>
+		<script src="js/libs/handlebars-1.1.2.js"></script>
+		<script src="js/libs/ember-1.5.0.js"></script>
+		<script src="js/libs/ember-model.js"></script>
+		<script src="js/libs/bootstrap.3.2.0.js"></script>
+		<script src="js/libs/bootstrap-slider.min.js"></script>
+		<script src="js/libs/jquery.noty.packaged.min.js"></script>
+		<script src="js/libs/cropper.0.3.9.js"></script>
+    <script src="js/libs/pixastic.custom.js"></script>
+		<script src="js/init.js"></script>
+		<script src="js/app.js"></script>
+		<!-- DOM EVENTS & pixastic functions -->
+		<script src="js/dom-events.js"></script>
+</body>
+</html>
