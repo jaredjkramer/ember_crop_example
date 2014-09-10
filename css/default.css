@@ -169,23 +169,25 @@ div.droppable:hover div.file:hover {
  *Tray tools
  */
 .tray {
+    padding-right: 0;
     position: fixed;
-    right:0px;
-    top: 35px;
-    padding-right:0;
-    z-index:100;
+    right: 0;
+    top: 40px;
+    z-index: 102;
 }
 
 .trayToggle {
+    background: none repeat scroll 0 0 #000;
+    border-radius: 5px;
+    padding: 4px 5px 2px 5px;
     position: fixed;
-    right:0px;
-    top:0px;
-    z-index: 101;
-    padding:5px;
+    right: 1px;
+    top: 1px;
+    z-index: 103;
 }
 .trayToggle .glyphicon {
     font-size: 24px;
-    margin-bottom: 10px;
+    color:#FFF;
 }
 
 .tray .panel {
@@ -262,4 +264,14 @@ div.droppable:hover div.file:hover {
 }
 .unstyled {
     list-style: none;
+}
+
+.mainImageTools {
+    background: none repeat scroll 0 0 #f5f5f5;
+    border: 1px solid #ddd;
+    border-bottom-left-radius: 5px;
+    border-top-left-radius: 5px;
+    padding: 5px;
+    height: 90%;
+    overflow: auto;
 }

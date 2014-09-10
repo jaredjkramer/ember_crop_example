@@ -18,12 +18,11 @@
 </head>
 <body>
   <script type="text/x-handlebars" data-template-name="application">
-    <div id="container" class="container">
        {{outlet}}     
   </script>
 
   <script type="text/x-handlebars" data-template-name="index">
-    <div class="mainImage col-sm-8 pull-left">
+    <div class="mainImage col-sm-12">
       {{#if currentMainImage}}
         <div class="img-container"><img id="editImage" {{bind-attr src=controller.currentMainImage.imagepath}} /></div>
         <img id="editedImage" {{bind-attr src=currentImage.imagepath}} />
@@ -35,7 +34,10 @@
         <div class="alert alert-warning" role="alert"><i class="glyphicon glyphicon-hand-down"></i>No image selected</div>
       {{/if}}
     </div>
-    <div class="mainImageTools col-sm-4 pull-left">
+    <div class="trayToggle" {{action "collapseTools" target="view"}}>
+      <i class="glyphicon glyphicon-cog"></i>
+    </div>
+    <div class="mainImageTools collapse tray tray-tools col-md-4">
         <button class="btn btn-lrg btn-block btn-success" id="btnCommitImage"{{bind-attr disabled=isFullAdmin}} {{action "commitImage" controller.currentMainImage target="controller" }}><i class="glyphicon glyphicon-ok"></i> Commit Image</button>
         <button class="btn btn-lrg btn-block" id="btnResetImage" {{action "resetImg" target="controller"}}><i class="glyphicon glyphicon-refresh"></i> Reset Image</button><hr>
           {{render 'imagetools'}}
